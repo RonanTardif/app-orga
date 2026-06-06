@@ -1,0 +1,28 @@
+# Dépendances
+node_modules/
+
+# Build
+dist/
+
+# Variables d'environnement (ne jamais committer)
+.env.local
+.env.*.local
+
+# Clé service account Firebase (ne jamais committer)
+scripts/serviceAccount.json
+
+# Éditeurs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
