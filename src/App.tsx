@@ -20,7 +20,7 @@ function RedirectIfIdentified() {
 
 export function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
         <Route path="/identity" element={<RedirectIfIdentified />} />
         <Route

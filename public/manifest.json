@@ -2,14 +2,14 @@
   "name": "Mariage Ronan & Lorie",
   "short_name": "Mariage",
   "description": "Coordination mariage Ronan & Lorie — 14 juin 2026",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "orientation": "portrait",
   "theme_color": "#7A9A87",
   "background_color": "#F7F3EF",
   "icons": [
     {
-      "src": "/icons/icon.svg",
+      "src": "./icons/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
