@@ -158,7 +158,8 @@ export async function runAgent(
         }
 
         if (toolResults.length > 0) {
-          messages.push({ role: 'user', content: toolResults })
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          messages.push({ role: 'user', content: toolResults as any })
         }
         continue
       }

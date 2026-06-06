@@ -7,7 +7,7 @@ import type { Tache } from '@/types'
 interface Props {
   open: boolean
   onClose: () => void
-  onSubmit: (data: Omit<Tache, 'id'>) => Promise<void>
+  onSubmit: (data: Omit<Tache, 'id'>) => Promise<string | void>
 }
 
 const EMPTY_FORM = {

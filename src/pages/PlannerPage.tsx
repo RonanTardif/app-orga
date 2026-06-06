@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { ChatInterface } from '@/components/ai/ChatInterface'
-import { ConfirmationCard } from '@/components/ai/ConfirmationCard'
 import { useAllTasks } from '@/hooks/useTasks'
 import { runAgent, type PendingAction } from '@/lib/agent'
 import { executeWriteTool, executeReschedulerCascade } from '@/lib/toolExecutor'

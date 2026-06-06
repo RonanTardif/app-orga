@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { isWriteTool, WRITE_TOOLS, READ_TOOLS } from '../agentTools'
 
 describe('isWriteTool', () => {

@@ -136,13 +136,13 @@ export async function executeWriteTool(
   input: Record<string, unknown>
 ): Promise<string> {
   if (name === 'modifier_statut') {
-    const { task_id, nouveau_statut } = input as ModifierStatutInput
+    const { task_id, nouveau_statut } = input as unknown as ModifierStatutInput
     await updateDoc(doc(db, 'taches', task_id), { statut: nouveau_statut })
     return `Statut mis à jour : "${nouveau_statut}"`
   }
 
   if (name === 'reassigner_tache') {
-    const { task_id, nouveau_membre } = input as ReassignerTacheInput
+    const { task_id, nouveau_membre } = input as unknown as ReassignerTacheInput
     await updateDoc(doc(db, 'taches', task_id), { assignes: [nouveau_membre] })
     return `Tâche réassignée à ${nouveau_membre}`
   }
@@ -150,7 +150,7 @@ export async function executeWriteTool(
   if (name === 'ajouter_tache') {
     // P-17 : addDoc/collection importés statiquement en haut du fichier
     // P-13 : jour passé comme paramètre (défaut 'samedi' = jour du mariage)
-    const i = input as AjouterTacheInput
+    const i = input as unknown as AjouterTacheInput
     const ref = await addDoc(collection(db, 'taches'), {
       titre: i.titre,
       assignes: i.assignes ?? [],
@@ -166,7 +166,7 @@ export async function executeWriteTool(
   }
 
   if (name === 'ajouter_note') {
-    const { task_id, note } = input as AjouterNoteInput
+    const { task_id, note } = input as unknown as AjouterNoteInput
     await updateDoc(doc(db, 'taches', task_id), { note })
     return `Note ajoutée`
   }
