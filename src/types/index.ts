@@ -25,6 +25,7 @@ export type Membre =
   | 'Ronan' | 'Lorie' | 'Guillaume' | 'Clément' | 'Thaïs' | 'Léa'
   | 'Tristan' | 'Pierre' | 'Quentin' | 'Pablo' | 'Frédéric'
   | 'Maryline' | 'Nolwenn' | 'Jean-Paul' | 'Sophie' | 'Alilé' | 'Alix'
+  | 'Yasmine' | 'Amaya' | 'Étienne' | 'Clélia' | 'Diane' | 'Marion' | 'Guillaume Le Meudec' | 'Sarah'
 
 export type Zone =
   | 'Château' | 'Orangerie' | 'Jardin à la française' | 'Chapelle'
