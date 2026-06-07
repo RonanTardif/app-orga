@@ -53,8 +53,8 @@ const db = admin.firestore()
 const tasksPath = resolve(__dirname, '../../{output_folder}/planning-artifacts/tasks-structured.json')
 const data = JSON.parse(readFileSync(tasksPath, 'utf8'))
 
-// Filtrer vendredi + samedi uniquement
-const jours = data.jours.filter((j) => j.id === 'vendredi' || j.id === 'samedi')
+// Filtrer tous les jours (avant, vendredi, samedi, dimanche)
+const jours = data.jours.filter((j) => ['avant', 'vendredi', 'samedi', 'dimanche'].includes(j.id))
 
 const taches = []
 for (const jour of jours) {
@@ -74,7 +74,7 @@ for (const jour of jours) {
   }
 }
 
-console.log(`📋 ${taches.length} macro-tâches à seeder (vendredi + samedi)...`)
+console.log(`📋 ${taches.length} macro-tâches à seeder (avant + vendredi + samedi + dimanche)...`)
 
 // Upsert idempotent par id
 const batch = db.batch()

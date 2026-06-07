@@ -41,7 +41,7 @@ const db = getFirestore(app)
 const tasksPath = resolve(__dirname, '../../{output_folder}/planning-artifacts/tasks-structured.json')
 const data = JSON.parse(readFileSync(tasksPath, 'utf8'))
 
-const jours = data.jours.filter((j) => j.id === 'vendredi' || j.id === 'samedi')
+const jours = data.jours.filter((j) => ['avant', 'vendredi', 'samedi', 'dimanche'].includes(j.id))
 
 const taches = []
 for (const jour of jours) {
@@ -61,7 +61,7 @@ for (const jour of jours) {
   }
 }
 
-console.log(`📋 ${taches.length} tâches à seeder (vendredi + samedi)...`)
+console.log(`📋 ${taches.length} tâches à seeder (avant + vendredi + samedi + dimanche)...`)
 
 // Firestore Web SDK : max 500 ops par batch
 const BATCH_SIZE = 400
