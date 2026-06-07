@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Pencil, Trash2, MapPin, Clock, GitBranch, FileText, Users, Calendar } from 'lucide-react'
 import { MEMBRES, ZONES } from '@/lib/constants'
@@ -33,6 +33,11 @@ export function TaskSheet({ tache, onClose, onSave, onDelete }: Props) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [form, setForm] = useState<Partial<Omit<Tache, 'id'>>>({})
+  const [localStatut, setLocalStatut] = useState<Statut>(tache?.statut ?? 'À faire')
+
+  useEffect(() => {
+    if (tache) setLocalStatut(tache.statut)
+  }, [tache?.id, tache?.statut])
 
   function handleClose() {
     setIsEditing(false)
@@ -63,9 +68,12 @@ export function TaskSheet({ tache, onClose, onSave, onDelete }: Props) {
 
   async function handleStatusChange(statut: Statut) {
     if (!tache || saving) return
+    setLocalStatut(statut)
     setSaving(true)
     try {
       await onSave(tache.id, { statut })
+    } catch {
+      setLocalStatut(tache.statut)
     } finally {
       setSaving(false)
     }
@@ -149,7 +157,7 @@ export function TaskSheet({ tache, onClose, onSave, onDelete }: Props) {
                     onClick={() => handleStatusChange(s)}
                     disabled={saving}
                     className={`flex-1 min-h-[44px] rounded-xl text-sm font-medium border transition-colors disabled:opacity-40
-                      ${tache.statut === s
+                      ${localStatut === s
                         ? 'bg-sage text-white border-sage-dark'
                         : 'bg-cream-card border-border-card text-gray-600'}`}
                   >
