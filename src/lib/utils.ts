@@ -28,6 +28,12 @@ export function normaliserJour(jour: string): Jour {
   return jour as Jour
 }
 
+function heureSort(heure: string): string {
+  const h = parseInt(heure.split(':')[0], 10)
+  // Heures < 06h00 = fin de soirée, elles trient après 23h59
+  return h < 6 ? `${String(h + 24).padStart(2, '0')}:${heure.split(':')[1]}` : heure
+}
+
 export function sortTachesByHeure(taches: Tache[]): Tache[] {
   return [...taches].sort((a, b) => {
     const aOrdre = JOUR_ORDRE[a.jour] ?? 0
@@ -39,7 +45,7 @@ export function sortTachesByHeure(taches: Tache[]): Tache[] {
     if (aNull && bNull) return 0
     if (aNull) return 1
     if (bNull) return -1
-    return a.heure_debut!.localeCompare(b.heure_debut!)
+    return heureSort(a.heure_debut!).localeCompare(heureSort(b.heure_debut!))
   })
 }
 
