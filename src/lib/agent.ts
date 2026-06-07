@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { callClaude, type Message } from '@/lib/claude'
 import { AGENT_TOOLS, isWriteTool } from '@/lib/agentTools'
 import { executeTool } from '@/lib/toolExecutor'
-import { SYSTEM_PROMPT } from '@/lib/systemPrompt'
+import { buildSystemPrompt } from '@/lib/systemPrompt'
 import { computeCascade, type CascadePreview } from '@/lib/utils'
 import type { Tache, KellyMemoryNote } from '@/types'
 
@@ -114,7 +114,7 @@ export async function runAgent(
       const response = await callClaude(
         messages,
         AGENT_TOOLS,
-        SYSTEM_PROMPT,
+        buildSystemPrompt(allTasks),
         controller.signal
       )
 

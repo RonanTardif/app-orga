@@ -155,8 +155,20 @@ function lectureTaches(input: LectureTachesInput, allTasks: Tache[]): string {
     taches = taches.filter((t) => t.statut === input.filtre_statut)
   }
   if (input.filtre_titre) {
-    const mot = input.filtre_titre.toLowerCase()
-    taches = taches.filter((t) => t.titre.toLowerCase().includes(mot))
+    const STOP_WORDS = new Set(['de', 'du', 'le', 'la', 'les', 'un', 'une', 'des', 'au', 'aux', 'et', 'en', 'à', 'a', 'l', 'je', 'tu', 'il', 'sa', 'son', 'ses'])
+    const mots = input.filtre_titre
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((m) => m.length > 1 && !STOP_WORDS.has(m))
+    if (mots.length > 0) {
+      taches = taches.filter((t) => {
+        const titre = t.titre.toLowerCase()
+        return mots.some((mot) => titre.includes(mot))
+      })
+    } else {
+      const mot = input.filtre_titre.toLowerCase()
+      taches = taches.filter((t) => t.titre.toLowerCase().includes(mot))
+    }
   }
 
   if (taches.length === 0) return 'Aucune tâche trouvée avec ces critères.'
