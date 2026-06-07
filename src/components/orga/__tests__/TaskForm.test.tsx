@@ -41,6 +41,35 @@ describe('TaskForm', () => {
     )
   })
 
+  it("affiche les 4 options de jour", () => {
+    render(<TaskForm open={true} onClose={vi.fn()} onSubmit={vi.fn()} />)
+    expect(screen.getByText('Avant le 12')).toBeInTheDocument()
+    expect(screen.getByText('Vendredi 12 juin')).toBeInTheDocument()
+    expect(screen.getByText('Samedi 13 juin')).toBeInTheDocument()
+    expect(screen.getByText('Dimanche 14 juin')).toBeInTheDocument()
+  })
+
+  it("soumet avec jour 'avant' par défaut", async () => {
+    const onSubmit = vi.fn().mockResolvedValue('new-id')
+    render(<TaskForm open={true} onClose={vi.fn()} onSubmit={onSubmit} />)
+    fireEvent.change(screen.getByPlaceholderText('Nom de la tache'), {
+      target: { value: 'Ma tâche' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Creer la tache' }))
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ jour: 'avant' }))
+  })
+
+  it("soumet avec le jour sélectionné", async () => {
+    const onSubmit = vi.fn().mockResolvedValue('new-id')
+    render(<TaskForm open={true} onClose={vi.fn()} onSubmit={onSubmit} />)
+    fireEvent.change(screen.getByPlaceholderText('Nom de la tache'), {
+      target: { value: 'Ma tâche' },
+    })
+    fireEvent.click(screen.getByText('Samedi 13 juin'))
+    fireEvent.click(screen.getByRole('button', { name: 'Creer la tache' }))
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ jour: 'samedi' }))
+  })
+
   it('appelle onClose au tap sur X', () => {
     const onClose = vi.fn()
     render(<TaskForm open={true} onClose={onClose} onSubmit={vi.fn()} />)

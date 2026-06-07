@@ -7,6 +7,18 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export function getJourActuel(): 'vendredi' | 'samedi' | 'dimanche' | null {
+  const today = new Date()
+  const vendredi = new Date(2026, 5, 12)
+  const samedi = new Date(2026, 5, 13)
+  const dimanche = new Date(2026, 5, 14)
+  const td = today.toDateString()
+  if (td === vendredi.toDateString()) return 'vendredi'
+  if (td === samedi.toDateString()) return 'samedi'
+  if (td === dimanche.toDateString()) return 'dimanche'
+  return null
+}
+
 export function sortTachesByHeure(taches: Tache[]): Tache[] {
   return [...taches].sort((a, b) => {
     // P-07 : utiliser == null pour couvrir undefined (champ absent de Firestore) et null

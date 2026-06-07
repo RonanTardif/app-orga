@@ -1,3 +1,5 @@
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { cn } from '@/lib/utils'
 import type { ChatMessage as ChatMessageType } from '@/types'
 
@@ -23,7 +25,24 @@ export function ChatMessage({ message }: Props) {
             : 'bg-cream-card border border-border-card text-gray-800 rounded-bl-sm'
         )}
       >
-        <p className="whitespace-pre-wrap">{message.content}</p>
+        {isUser ? (
+          <p className="whitespace-pre-wrap">{message.content}</p>
+        ) : (
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+              strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+              em: ({ children }) => <em className="italic">{children}</em>,
+              ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-0.5">{children}</ul>,
+              ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-0.5">{children}</ol>,
+              li: ({ children }) => <li className="text-sm">{children}</li>,
+              code: ({ children }) => <code className="bg-gray-100 rounded px-1 text-xs font-mono">{children}</code>,
+            }}
+          >
+            {message.content}
+          </ReactMarkdown>
+        )}
         <p
           className={cn(
             'mt-1 text-xs opacity-60',

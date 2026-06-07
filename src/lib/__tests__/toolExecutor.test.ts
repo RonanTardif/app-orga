@@ -1,6 +1,9 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
+
+vi.mock('../mariageKnowledge', () => ({ getMariageKnowledge: vi.fn(() => '') }))
+
 import { executeTool } from '../toolExecutor'
-import type { Tache, Statut } from '@/types'
+import type { Tache, Statut, KellyMemoryNote } from '@/types'
 
 function makeTache(overrides: Partial<Tache> = {}): Tache {
   return {
@@ -89,5 +92,28 @@ describe('lecture_taches', () => {
   it('retourne un message pour un outil inconnu', () => {
     const result = executeTool('outil_inexistant', {}, tasks)
     expect(result).toContain('Outil inconnu')
+  })
+})
+
+describe('consulter_memoire', () => {
+  it('retourne message vide si aucune note', () => {
+    const result = executeTool('consulter_memoire', {}, [], [])
+    expect(result).toContain('rien mémorisé')
+  })
+
+  it('liste les notes mémorisées', () => {
+    const notes: KellyMemoryNote[] = [
+      { id: '1', contenu: "Les verres à shots sont dans l'orangerie" },
+      { id: '2', contenu: 'Le traiteur arrive à 11h' },
+    ]
+    const result = executeTool('consulter_memoire', {}, [], notes)
+    expect(result).toContain('verres à shots')
+    expect(result).toContain('traiteur')
+    expect(result).toContain('2 info(s)')
+  })
+
+  it('fonctionne sans 4e paramètre (compat ascendante)', () => {
+    const result = executeTool('consulter_memoire', {}, [])
+    expect(result).toContain('rien mémorisé')
   })
 })

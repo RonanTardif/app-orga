@@ -5,8 +5,7 @@ import type { Tache } from '@/types'
 interface Props {
   tasks: Tache[]
   loading: boolean
-  onStatusForward: (id: string) => void
-  onStatusBack: (id: string) => void
+  onCardTap: (tache: Tache) => void
 }
 
 function SkeletonCard() {
@@ -18,7 +17,7 @@ function SkeletonCard() {
   )
 }
 
-export function TaskList({ tasks, loading, onStatusForward, onStatusBack }: Props) {
+export function TaskList({ tasks, loading, onCardTap }: Props) {
   if (loading) {
     return (
       <div className="space-y-3">
@@ -37,8 +36,7 @@ export function TaskList({ tasks, loading, onStatusForward, onStatusBack }: Prop
         <TaskCard
           key={tache.id}
           tache={tache}
-          onStatusForward={onStatusForward}
-          onStatusBack={onStatusBack}
+          onCardTap={onCardTap}
         />
       ))}
     </div>

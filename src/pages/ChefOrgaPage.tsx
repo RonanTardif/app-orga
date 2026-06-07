@@ -5,7 +5,7 @@ import { GlobalView } from '@/components/orga/GlobalView'
 
 export function ChefOrgaPage() {
   const { isAuthenticated, authenticate } = useChefOrga()
-  const { allTasks, loading, updateStatut, reassignerTache, creerTache, supprimerTache } = useAllTasks()
+  const { allTasks, loading, updateTache, creerTache, supprimerTache } = useAllTasks()
 
   if (!isAuthenticated) {
     return <PinEntry authenticate={authenticate} onSuccess={() => {}} />
@@ -29,8 +29,7 @@ export function ChefOrgaPage() {
   return (
     <GlobalView
       allTasks={allTasks}
-      updateStatut={updateStatut}
-      reassignerTache={reassignerTache}
+      updateTache={updateTache}
       creerTache={creerTache}
       supprimerTache={supprimerTache}
     />

@@ -1,116 +1,123 @@
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { Plus } from 'lucide-react'
-import { ZONES, STATUTS } from '@/lib/constants'
-import { computeDisponibilite, sortTachesByHeure, nextStatut, prevStatut } from '@/lib/utils'
+import { ZONES } from '@/lib/constants'
+import { computeDisponibilite, sortTachesByHeure } from '@/lib/utils'
 import { TaskCard } from '@/components/tasks/TaskCard'
+import { TaskSheet } from '@/components/tasks/TaskSheet'
 import { MemberAvailability } from './MemberAvailability'
 import { MemberView } from './MemberView'
 import { ZoneView } from './ZoneView'
-import { TaskAssignSelector } from './TaskAssignSelector'
-import { TaskDetail } from './TaskDetail'
 import { TaskForm } from './TaskForm'
 import type { Tache, Statut } from '@/types'
+
+// TaskDetail et TaskAssignSelector sont conservés mais non utilisés ici (@deprecated — cleanup prévu)
 
 type SubView =
   | { type: 'global' }
   | { type: 'member'; membre: string }
   | { type: 'zone'; zone: string }
 
+const SECTIONS: Statut[] = ['À faire', 'En cours', 'Fait']
+
 interface Props {
   allTasks: Tache[]
-  updateStatut: (id: string, statut: Statut) => Promise<void>
-  reassignerTache: (id: string, membre: string) => Promise<void>
+  updateTache: (id: string, data: Partial<Omit<Tache, 'id'>>) => Promise<void>
   creerTache: (data: Omit<Tache, 'id'>) => Promise<string>
   supprimerTache: (id: string) => Promise<void>
 }
 
-export function GlobalView({ allTasks, updateStatut, reassignerTache, creerTache, supprimerTache }: Props) {
+export function GlobalView({ allTasks, updateTache, creerTache, supprimerTache }: Props) {
   const [subView, setSubView] = useState<SubView>({ type: 'global' })
   const [filterZones, setFilterZones] = useState<string[]>([])
+  const [filterMembre, setFilterMembre] = useState<string | null>(null)
   const [filterStatuts, setFilterStatuts] = useState<Statut[]>([])
-  const [selectedForAssign, setSelectedForAssign] = useState<Tache | null>(null)
-  const [selectedForDetail, setSelectedForDetail] = useState<Tache | null>(null)
+  const [selectedTask, setSelectedTask] = useState<Tache | null>(null)
   const [showTaskForm, setShowTaskForm] = useState(false)
 
   const dispo = computeDisponibilite(allTasks)
-
-  const handleStatusForward = useCallback(async (id: string) => {
-    const task = allTasks.find((t) => t.id === id)
-    if (!task) return
-    await updateStatut(id, nextStatut(task.statut))
-  }, [allTasks, updateStatut])
-
-  const handleStatusBack = useCallback(async (id: string) => {
-    const task = allTasks.find((t) => t.id === id)
-    if (!task) return
-    await updateStatut(id, prevStatut(task.statut))
-  }, [allTasks, updateStatut])
 
   function toggleZone(zone: string) {
     setFilterZones((z) => z.includes(zone) ? z.filter((x) => x !== zone) : [...z, zone])
   }
 
-  function toggleStatut(s: Statut) {
-    setFilterStatuts((st) => st.includes(s) ? st.filter((x) => x !== s) : [...st, s])
+  function toggleMembre(membre: string) {
+    setFilterMembre((m) => m === membre ? null : membre)
+  }
+
+  function toggleStatut(statut: Statut) {
+    setFilterStatuts((s) => s.includes(statut) ? s.filter((x) => x !== statut) : [...s, statut])
   }
 
   const filteredTasks = sortTachesByHeure(
     allTasks.filter((t) => {
       const zoneOk = filterZones.length === 0 || (t.zone !== null && filterZones.includes(t.zone))
+      const membreOk = filterMembre === null || t.assignes.includes(filterMembre)
       const statutOk = filterStatuts.length === 0 || filterStatuts.includes(t.statut)
-      return zoneOk && statutOk
+      return zoneOk && membreOk && statutOk
     })
   )
 
-  const handleAssign = useCallback(async (taskId: string, membre: string) => {
-    await reassignerTache(taskId, membre)
-    setSelectedForAssign(null)
-  }, [reassignerTache])
-
   if (subView.type === 'member') {
     return (
-      <MemberView
-        membre={subView.membre}
-        tasks={allTasks}
-        onBack={() => setSubView({ type: 'global' })}
-        onStatusForward={handleStatusForward}
-        onStatusBack={handleStatusBack}
-        onInfoTap={setSelectedForDetail}
-      />
+      <>
+        <MemberView
+          membre={subView.membre}
+          tasks={allTasks}
+          onBack={() => { setSubView({ type: 'global' }); setSelectedTask(null) }}
+          onCardTap={setSelectedTask}
+        />
+        <TaskSheet
+          tache={selectedTask}
+          onClose={() => setSelectedTask(null)}
+          onSave={updateTache}
+          onDelete={async (id) => { await supprimerTache(id); setSelectedTask(null) }}
+        />
+      </>
     )
   }
 
   if (subView.type === 'zone') {
     return (
-      <ZoneView
-        zone={subView.zone}
-        tasks={allTasks}
-        onBack={() => setSubView({ type: 'global' })}
-        onStatusForward={handleStatusForward}
-        onStatusBack={handleStatusBack}
-        onInfoTap={setSelectedForDetail}
-      />
+      <>
+        <ZoneView
+          zone={subView.zone}
+          tasks={allTasks}
+          onBack={() => { setSubView({ type: 'global' }); setSelectedTask(null) }}
+          onCardTap={setSelectedTask}
+        />
+        <TaskSheet
+          tache={selectedTask}
+          onClose={() => setSelectedTask(null)}
+          onSave={updateTache}
+          onDelete={async (id) => { await supprimerTache(id); setSelectedTask(null) }}
+        />
+      </>
     )
   }
 
   return (
     <div className="p-4 pb-32">
-      {/* Disponibilite membres */}
-      <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">Disponibilite</h2>
+      {/* Bande membres — filtre au tap */}
+      <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">Disponibilité</h2>
       <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-4 px-4">
         {Object.entries(dispo).map(([membre, d]) => (
-          <MemberAvailability
+          <div
             key={membre}
-            membre={membre}
-            dispo={d}
-            onMemberClick={(m) => setSubView({ type: 'member', membre: m })}
-          />
+            onClick={() => { toggleMembre(membre); setSelectedTask(null); setSubView({ type: 'member', membre }) }}
+            className={`cursor-pointer transition-opacity ${filterMembre && filterMembre !== membre ? 'opacity-40' : ''}`}
+          >
+            <MemberAvailability
+              membre={membre}
+              dispo={d}
+              onMemberClick={() => {}}
+            />
+          </div>
         ))}
       </div>
 
       {/* Filtres zones */}
       <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">Zones</h2>
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-3 -mx-4 px-4">
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-4 px-4">
         {ZONES.map((z) => (
           <button
             key={z}
@@ -125,40 +132,43 @@ export function GlobalView({ allTasks, updateStatut, reassignerTache, creerTache
         ))}
       </div>
 
-      {/* Filtres statuts */}
-      <div className="flex gap-2 mb-4">
-        {STATUTS.map((s) => (
+      {/* Filtres statut */}
+      <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">Statut</h2>
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-4 px-4">
+        {SECTIONS.map((statut) => (
           <button
-            key={s}
-            onClick={() => toggleStatut(s)}
-            className={`px-3 py-1.5 rounded-xl text-sm border transition-colors
-              ${filterStatuts.includes(s)
+            key={statut}
+            onClick={() => toggleStatut(statut)}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-sm border transition-colors
+              ${filterStatuts.includes(statut)
                 ? 'bg-sage text-white border-sage-dark'
                 : 'bg-cream-card border-border-card text-gray-600'}`}
           >
-            {s}
+            {statut}
           </button>
         ))}
       </div>
 
-      {/* Liste taches */}
+      {/* Tâches groupées par statut */}
       {filteredTasks.length === 0 ? (
-        <p className="text-gray-400 text-center py-8">Aucun resultat</p>
+        <p className="text-gray-400 text-center py-8">Aucun résultat</p>
       ) : (
-        <div className="space-y-3">
-          {filteredTasks.map((t) => (
-            <TaskCard
-              key={t.id}
-              tache={t}
-              chefMode
-              showAssigne
-              onStatusForward={handleStatusForward}
-              onStatusBack={handleStatusBack}
-              onCardTap={setSelectedForAssign}
-              onInfoTap={setSelectedForDetail}
-            />
-          ))}
-        </div>
+        SECTIONS.map((statut) => {
+          const section = filteredTasks.filter((t) => t.statut === statut)
+          if (section.length === 0) return null
+          return (
+            <div key={statut} className="mb-5">
+              <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">
+                {statut} ({section.length})
+              </h3>
+              <div className="space-y-3">
+                {section.map((t) => (
+                  <TaskCard key={t.id} tache={t} showAssigne onCardTap={setSelectedTask} />
+                ))}
+              </div>
+            </div>
+          )
+        })
       )}
 
       {/* FAB */}
@@ -171,17 +181,11 @@ export function GlobalView({ allTasks, updateStatut, reassignerTache, creerTache
       </button>
 
       {/* Bottom sheets */}
-      <TaskAssignSelector
-        tache={selectedForAssign}
-        allTasks={allTasks}
-        onAssign={handleAssign}
-        onClose={() => setSelectedForAssign(null)}
-      />
-
-      <TaskDetail
-        tache={selectedForDetail}
-        onClose={() => setSelectedForDetail(null)}
-        onDelete={supprimerTache}
+      <TaskSheet
+        tache={selectedTask}
+        onClose={() => setSelectedTask(null)}
+        onSave={updateTache}
+        onDelete={async (id) => { await supprimerTache(id); setSelectedTask(null) }}
       />
 
       <TaskForm

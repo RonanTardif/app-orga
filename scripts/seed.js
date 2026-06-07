@@ -65,11 +65,11 @@ for (const jour of jours) {
       heure_debut: tache.heure_debut ?? null,
       heure_fin: tache.heure_fin ?? null,
       zone: tache.zone ?? null,
-      assignes: Array.isArray(tache.assignes) ? tache.assignes : [],
+      assignes: Array.isArray(tache.assignes) ? tache.assignes.filter((a) => a !== 'tous') : [],
       statut: 'À faire',
       note: tache.note ?? null,
       jour: jour.id,
-      parente: null,
+      parente: tache.parente ?? null,
     })
   }
 }

@@ -4,7 +4,7 @@ import { MyTasksPage } from '@/pages/MyTasksPage'
 import { ChefOrgaPage } from '@/pages/ChefOrgaPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { IdentityPage } from '@/pages/IdentityPage'
-import { PlannerPage } from '@/pages/PlannerPage'
+import { KellyPage } from '@/pages/KellyPage'
 
 function RequireIdentity({ children }: { children: React.ReactNode }) {
   const identity = localStorage.getItem('orga_identity')
@@ -23,6 +23,7 @@ export function App() {
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
         <Route path="/identity" element={<RedirectIfIdentified />} />
+        <Route path="/planner" element={<Navigate to="/kelly" replace />} />
         <Route
           element={
             <RequireIdentity>
@@ -32,7 +33,7 @@ export function App() {
         >
           <Route path="/" element={<MyTasksPage />} />
           <Route path="/chef" element={<ChefOrgaPage />} />
-          <Route path="/planner" element={<PlannerPage />} />
+          <Route path="/kelly" element={<KellyPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>

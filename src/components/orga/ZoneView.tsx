@@ -8,12 +8,10 @@ interface Props {
   zone: string
   tasks: Tache[]
   onBack: () => void
-  onStatusForward: (id: string) => void
-  onStatusBack: (id: string) => void
-  onInfoTap: (tache: Tache) => void
+  onCardTap: (tache: Tache) => void
 }
 
-export function ZoneView({ zone, tasks, onBack, onStatusForward, onStatusBack, onInfoTap }: Props) {
+export function ZoneView({ zone, tasks, onBack, onCardTap }: Props) {
   const zoneTasks = tasks.filter((t) => t.zone === zone)
 
   return (
@@ -36,11 +34,8 @@ export function ZoneView({ zone, tasks, onBack, onStatusForward, onStatusBack, o
                 <TaskCard
                   key={t.id}
                   tache={t}
-                  chefMode
                   showAssigne
-                  onStatusForward={onStatusForward}
-                  onStatusBack={onStatusBack}
-                  onInfoTap={onInfoTap}
+                  onCardTap={onCardTap}
                 />
               ))}
             </div>

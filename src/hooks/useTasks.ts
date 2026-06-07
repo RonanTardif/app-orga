@@ -7,18 +7,6 @@ import { db } from '@/lib/firebase'
 import { sortTachesByHeure } from '@/lib/utils'
 import type { Tache, Statut } from '@/types'
 
-// D-01 : filtre les tâches par jour courant (vendredi = 12 juin, samedi = 13 juin)
-// Hors des jours de l'événement, toutes les tâches sont affichées (usage en dev/test)
-function getJourActuel(): 'vendredi' | 'samedi' | null {
-  const today = new Date()
-  const vendredi = new Date(2026, 5, 12) // 12 juin 2026
-  const samedi = new Date(2026, 5, 13)   // 13 juin 2026
-  const td = today.toDateString()
-  if (td === vendredi.toDateString()) return 'vendredi'
-  if (td === samedi.toDateString()) return 'samedi'
-  return null
-}
-
 export function useTasks(identity: string | null) {
   const [tasks, setTasks] = useState<Tache[]>([])
   const [loading, setLoading] = useState(true)
@@ -36,15 +24,10 @@ export function useTasks(identity: string | null) {
       where('assignes', 'array-contains', identity)
     )
 
-    const jourActuel = getJourActuel()
-
     const unsub = onSnapshot(
       q,
       (snap) => {
-        let taches = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Tache))
-        if (jourActuel) {
-          taches = taches.filter((t) => t.jour === jourActuel)
-        }
+        const taches = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Tache))
         setTasks(sortTachesByHeure(taches))
         setLoading(false)
         setError(null)
@@ -62,7 +45,15 @@ export function useTasks(identity: string | null) {
     await updateDoc(doc(db, 'taches', id), { statut })
   }
 
-  return { tasks, loading, error, updateStatut }
+  async function updateTache(id: string, data: Partial<Omit<Tache, 'id'>>): Promise<void> {
+    await updateDoc(doc(db, 'taches', id), data)
+  }
+
+  async function supprimerTache(id: string): Promise<void> {
+    await deleteDoc(doc(db, 'taches', id))
+  }
+
+  return { tasks, loading, error, updateStatut, updateTache, supprimerTache }
 }
 
 export function useAllTasks() {
@@ -90,6 +81,10 @@ export function useAllTasks() {
     await updateDoc(doc(db, 'taches', id), { statut })
   }
 
+  async function updateTache(id: string, data: Partial<Omit<Tache, 'id'>>): Promise<void> {
+    await updateDoc(doc(db, 'taches', id), data)
+  }
+
   async function reassignerTache(id: string, nouveauMembre: string): Promise<void> {
     await updateDoc(doc(db, 'taches', id), { assignes: [nouveauMembre] })
   }
@@ -107,5 +102,5 @@ export function useAllTasks() {
     await updateDoc(doc(db, 'taches', id), { note })
   }
 
-  return { allTasks, loading, updateStatut, reassignerTache, creerTache, supprimerTache, ajouterNote }
+  return { allTasks, loading, updateStatut, updateTache, reassignerTache, creerTache, supprimerTache, ajouterNote }
 }

@@ -4,7 +4,7 @@ import { AGENT_TOOLS, isWriteTool } from '@/lib/agentTools'
 import { executeTool } from '@/lib/toolExecutor'
 import { SYSTEM_PROMPT } from '@/lib/systemPrompt'
 import { computeCascade, type CascadePreview } from '@/lib/utils'
-import type { Tache } from '@/types'
+import type { Tache, KellyMemoryNote } from '@/types'
 
 const TIMEOUT_MS = 10_000
 const MAX_ITERATIONS = 5
@@ -43,6 +43,32 @@ function buildSummary(
       const task = tasks.find((t) => t.id === input.task_id)
       return `Ajouter la note "${input.note}" à "${task?.titre ?? input.task_id}"`
     }
+    case 'modifier_tache': {
+      const { task_id, champs } = input as { task_id: string; champs: Record<string, unknown> }
+      const tache = tasks.find((t) => t.id === task_id)
+      const titreTache = tache?.titre ?? task_id
+      const modifications: string[] = []
+      if (champs.titre) modifications.push(`titre → "${champs.titre}"`)
+      if (champs.zone) modifications.push(`zone → "${champs.zone}"`)
+      if (champs.heure_debut) modifications.push(`heure de début → ${champs.heure_debut}`)
+      if (champs.heure_fin) modifications.push(`heure de fin → ${champs.heure_fin}`)
+      if (champs.note) modifications.push(`note → "${champs.note}"`)
+      if (champs.assignes) modifications.push(`assignés → ${(champs.assignes as string[]).join(', ')}`)
+      if (champs.statut) modifications.push(`statut → ${champs.statut}`)
+      if (champs.jour) modifications.push(`jour → ${champs.jour}`)
+      if (champs.parente !== undefined) modifications.push(`parente → ${champs.parente ?? 'aucune'}`)
+      return `Je vais modifier la tâche **"${titreTache}"** :\n${modifications.map((m) => `• ${m}`).join('\n')}\n\nTu confirmes ?`
+    }
+    case 'supprimer_tache': {
+      const { task_id, titre_confirme } = input as { task_id: string; titre_confirme: string }
+      const tache = tasks.find((t) => t.id === task_id)
+      const titreTache = titre_confirme ?? tache?.titre ?? task_id
+      return `⚠️ Je vais **supprimer définitivement** la tâche **"${titreTache}"**.\n\nCette action est irréversible. Tu confirmes ?`
+    }
+    case 'sauvegarder_info': {
+      const { contenu } = input as { contenu: string }
+      return `Mémoriser : "${contenu}"`
+    }
     default:
       return 'Action inconnue'
   }
@@ -59,6 +85,7 @@ function buildCascadeSummary(previews: CascadePreview[]): string {
 
 // ─── Résolution parente par titre ─────────────────────────────────────────────
 
+// @ts-ignore — réservé pour usage futur
 function findTaskByTitle(titre: string, tasks: Tache[]): Tache | null {
   const mot = titre.toLowerCase()
   const matches = tasks.filter((t) => t.titre.toLowerCase().includes(mot))
@@ -71,7 +98,8 @@ function findTaskByTitle(titre: string, tasks: Tache[]): Tache | null {
 export async function runAgent(
   userMessage: string,
   history: Message[],
-  allTasks: Tache[]
+  allTasks: Tache[],
+  kellyMemory: KellyMemoryNote[] = []
 ): Promise<AgentResult> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
@@ -108,12 +136,17 @@ export async function runAgent(
           // Cas spécial : rescheduler_cascade (calcul avant confirmation)
           if (block.name === 'rescheduler_cascade') {
             const inp = block.input as { parente_titre: string; decalage_minutes: number }
-            const parente = findTaskByTitle(inp.parente_titre, allTasks)
+            const mot = inp.parente_titre.toLowerCase()
+            const matches = allTasks.filter((t) => t.titre.toLowerCase().includes(mot))
+            const parente = matches.length === 1 ? matches[0] : null
 
             if (!parente) {
+              const reason = matches.length === 0
+                ? `aucune tâche ne correspond à "${inp.parente_titre}"`
+                : `plusieurs tâches correspondent (${matches.map((t) => `"${t.titre}"`).join(', ')}) — précise le titre`
               return {
                 type: 'response',
-                content: `Aucune tâche parente trouvée pour "${inp.parente_titre}". Peux-tu préciser le titre ?`,
+                content: `Impossible de lancer le rescheduling : ${reason}.`,
               }
             }
 
@@ -149,7 +182,7 @@ export async function runAgent(
           }
 
           // Outil de lecture → exécution directe
-          const result = executeTool(block.name, block.input as Record<string, unknown>, allTasks)
+          const result = executeTool(block.name, block.input as Record<string, unknown>, allTasks, kellyMemory)
           toolResults.push({
             type: 'tool_result',
             tool_use_id: block.id,

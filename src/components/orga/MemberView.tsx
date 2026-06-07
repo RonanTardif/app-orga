@@ -7,12 +7,10 @@ interface Props {
   membre: string
   tasks: Tache[]
   onBack: () => void
-  onStatusForward: (id: string) => void
-  onStatusBack: (id: string) => void
-  onInfoTap: (tache: Tache) => void
+  onCardTap: (tache: Tache) => void
 }
 
-export function MemberView({ membre, tasks, onBack, onStatusForward, onStatusBack, onInfoTap }: Props) {
+export function MemberView({ membre, tasks, onBack, onCardTap }: Props) {
   const memberTasks = tasks.filter((t) => t.assignes.includes(membre))
   const dispo = computeDisponibilite(memberTasks)[membre] ?? { aFaire: 0, enCours: 0 }
   const actives = dispo.aFaire + dispo.enCours
@@ -40,10 +38,7 @@ export function MemberView({ membre, tasks, onBack, onStatusForward, onStatusBac
             <TaskCard
               key={t.id}
               tache={t}
-              chefMode
-              onStatusForward={onStatusForward}
-              onStatusBack={onStatusBack}
-              onInfoTap={onInfoTap}
+              onCardTap={onCardTap}
             />
           ))}
         </div>

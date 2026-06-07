@@ -1,4 +1,12 @@
+import type { Timestamp } from 'firebase/firestore'
+
 export type Statut = 'À faire' | 'En cours' | 'Fait'
+
+export interface KellyMemoryNote {
+  id: string
+  contenu: string
+  cree_a?: Timestamp
+}
 
 export interface Tache {
   id: string
@@ -9,7 +17,7 @@ export interface Tache {
   assignes: string[]
   statut: Statut
   note: string | null
-  jour: 'vendredi' | 'samedi'
+  jour: 'vendredi' | 'samedi' | 'dimanche' | 'avant'
   parente: string | null
 }
 

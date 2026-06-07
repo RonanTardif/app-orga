@@ -1,24 +1,41 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState } from 'react'
 import { useIdentity } from '@/hooks/useIdentity'
 import { useTasks } from '@/hooks/useTasks'
-import { TaskList } from '@/components/tasks/TaskList'
+import { DaySection } from '@/components/tasks/DaySection'
+import { TaskSheet } from '@/components/tasks/TaskSheet'
+import { EmptyState } from '@/components/tasks/EmptyState'
 import { Toast } from '@/components/ui/Toast'
-import { nextStatut, prevStatut } from '@/lib/utils'
+import { getJourActuel, sortTachesByHeure } from '@/lib/utils'
 import type { ToastData } from '@/components/ui/Toast'
 import type { Tache } from '@/types'
 
+const JOUR_CHIPS = [
+  { key: 'tous', label: 'Tous' },
+  { key: 'vendredi', label: 'Vendredi' },
+  { key: 'samedi', label: 'Samedi' },
+  { key: 'dimanche', label: 'Dimanche' },
+  { key: 'avant', label: 'Avant' },
+] as const
+
+type FilterJour = (typeof JOUR_CHIPS)[number]['key']
+
+const SECTIONS = [
+  { key: 'avant', label: 'Avant le 12' },
+  { key: 'vendredi', label: 'Vendredi 12 juin' },
+  { key: 'samedi', label: 'Samedi 13 juin' },
+  { key: 'dimanche', label: 'Dimanche 14 juin' },
+] as const
+
+const getJourTache = (t: Tache): string => t.jour ?? 'avant'
+
 export function MyTasksPage() {
   const { identity } = useIdentity()
-  const { tasks: firestoreTasks, loading, error, updateStatut } = useTasks(identity)
-  const [localTasks, setLocalTasks] = useState<Tache[] | null>(null)
+  const { tasks, loading, error, updateTache, supprimerTache } = useTasks(identity)
+  const [selectedTask, setSelectedTask] = useState<Tache | null>(null)
+  const [filterJour, setFilterJour] = useState<FilterJour>('tous')
   const [toasts, setToasts] = useState<ToastData[]>([])
 
-  // Quand Firestore émet un snapshot frais, on abandonne l'état optimiste
-  useEffect(() => {
-    setLocalTasks(null)
-  }, [firestoreTasks])
-
-  const tasks = localTasks ?? firestoreTasks
+  const jourActuel = getJourActuel()
 
   function showToast(message: string, variant: 'error' | 'success') {
     const id = Date.now()
@@ -29,50 +46,44 @@ export function MyTasksPage() {
     setToasts((prev) => prev.filter((t) => t.id !== id))
   }
 
-  const handleStatusForward = useCallback(async (id: string) => {
-    const task = tasks.find((t) => t.id === id)
-    if (!task) return
-    const newStatut = nextStatut(task.statut)
-    if (newStatut === task.statut) return
+  function handleChipClick(key: FilterJour) {
+    setFilterJour((prev) => prev === key ? 'tous' : key)
+  }
 
-    setLocalTasks(tasks.map((t) => t.id === id ? { ...t, statut: newStatut } : t))
-
+  async function handleSave(id: string, data: Partial<Omit<Tache, 'id'>>) {
     try {
-      await updateStatut(id, newStatut)
+      await updateTache(id, data)
     } catch {
-      // P-09 : form fonctionnelle pour éviter la closure stale sur `tasks`
-      const originalStatut = task.statut
-      setLocalTasks((prev) =>
-        (prev ?? firestoreTasks).map((t) => t.id === id ? { ...t, statut: originalStatut } : t)
-      )
       showToast('Erreur de mise à jour', 'error')
     }
-  }, [tasks, firestoreTasks, updateStatut])
+  }
 
-  const handleStatusBack = useCallback(async (id: string) => {
-    const task = tasks.find((t) => t.id === id)
-    if (!task) return
-    const newStatut = prevStatut(task.statut)
-    if (newStatut === task.statut) return
-
-    setLocalTasks(tasks.map((t) => t.id === id ? { ...t, statut: newStatut } : t))
-
+  async function handleDelete(id: string) {
     try {
-      await updateStatut(id, newStatut)
+      await supprimerTache(id)
+      setSelectedTask(null)
     } catch {
-      const originalStatut = task.statut
-      setLocalTasks((prev) =>
-        (prev ?? firestoreTasks).map((t) => t.id === id ? { ...t, statut: originalStatut } : t)
-      )
-      showToast('Erreur de mise à jour', 'error')
+      showToast('Erreur de suppression', 'error')
     }
-  }, [tasks, firestoreTasks, updateStatut])
+  }
+
+  const filteredTasks = sortTachesByHeure(
+    filterJour === 'tous'
+      ? tasks
+      : tasks.filter((t) => getJourTache(t) === filterJour)
+  )
+
+  const tasksByJour = SECTIONS.map((section) => ({
+    ...section,
+    tasks: filteredTasks.filter((t) => getJourTache(t) === section.key),
+    defaultOpen: filterJour !== 'tous' || jourActuel === null || jourActuel === section.key,
+  }))
 
   return (
     <div className="p-4 max-w-lg mx-auto">
       <h1 className="text-2xl font-semibold text-sage-dark mb-1">Mes taches</h1>
       {identity && (
-        <p className="text-gray-500 text-sm mb-4">{identity}</p>
+        <p className="text-gray-500 text-sm mb-3">{identity}</p>
       )}
 
       {error && (
@@ -81,11 +92,50 @@ export function MyTasksPage() {
         </div>
       )}
 
-      <TaskList
-        tasks={tasks}
-        loading={loading}
-        onStatusForward={handleStatusForward}
-        onStatusBack={handleStatusBack}
+      {/* Chips filtre jour */}
+      <div className="flex gap-2 overflow-x-auto pb-1 mb-4 scrollbar-hide">
+        {JOUR_CHIPS.map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => handleChipClick(key)}
+            className={`flex-shrink-0 min-h-[36px] px-3 rounded-full text-sm border transition-colors
+              ${filterJour === key
+                ? 'bg-sage text-white border-sage-dark'
+                : 'bg-cream-card border-border-card text-gray-600'}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-cream-card border border-border-card rounded-2xl p-4 animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-3/4 mb-3" />
+              <div className="h-3 bg-gray-100 rounded w-1/3" />
+            </div>
+          ))}
+        </div>
+      ) : tasks.length === 0 ? (
+        <EmptyState />
+      ) : (
+        tasksByJour.map((section) => (
+          <DaySection
+            key={`${section.key}-${filterJour}`}
+            label={section.label}
+            tasks={section.tasks}
+            defaultOpen={section.defaultOpen}
+            onCardTap={setSelectedTask}
+          />
+        ))
+      )}
+
+      <TaskSheet
+        tache={selectedTask}
+        onClose={() => setSelectedTask(null)}
+        onSave={handleSave}
+        onDelete={handleDelete}
       />
 
       <Toast toasts={toasts} onDismiss={dismissToast} />

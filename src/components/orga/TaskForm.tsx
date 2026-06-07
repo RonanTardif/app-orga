@@ -10,6 +10,13 @@ interface Props {
   onSubmit: (data: Omit<Tache, 'id'>) => Promise<string | void>
 }
 
+const JOUR_OPTIONS: { value: Tache['jour']; label: string }[] = [
+  { value: 'avant', label: 'Avant le 12' },
+  { value: 'vendredi', label: 'Vendredi 12 juin' },
+  { value: 'samedi', label: 'Samedi 13 juin' },
+  { value: 'dimanche', label: 'Dimanche 14 juin' },
+]
+
 const EMPTY_FORM = {
   titre: '',
   assignes: [] as string[],
@@ -18,6 +25,7 @@ const EMPTY_FORM = {
   heure_fin: '',
   parente: '',
   note: '',
+  jour: 'avant' as Tache['jour'],
 }
 
 export function TaskForm({ open, onClose, onSubmit }: Props) {
@@ -46,7 +54,7 @@ export function TaskForm({ open, onClose, onSubmit }: Props) {
         assignes: form.assignes,
         statut: 'À faire',
         note: form.note || null,
-        jour: 'samedi',
+        jour: form.jour,
         parente: form.parente || null,
       })
       handleClose()
@@ -100,6 +108,26 @@ export function TaskForm({ open, onClose, onSubmit }: Props) {
                   className="mt-1 w-full bg-cream-card border border-border-card rounded-xl px-4 py-3 outline-none focus:border-sage"
                 />
                 {error && <p className="text-rose-dark text-xs mt-1">{error}</p>}
+              </div>
+
+              {/* Jour */}
+              <div>
+                <label className="text-xs text-gray-500 font-medium uppercase tracking-wide">Jour</label>
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  {JOUR_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, jour: opt.value }))}
+                      className={`px-3 py-1.5 rounded-xl text-sm border transition-colors
+                        ${form.jour === opt.value
+                          ? 'bg-sage text-white border-sage-dark'
+                          : 'bg-cream-card border-border-card'}`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Assignes */}

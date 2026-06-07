@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, act } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { TaskCard } from '../TaskCard'
 import type { Tache } from '@/types'
 
@@ -17,14 +17,6 @@ const baseTache: Tache = {
 }
 
 describe('TaskCard', () => {
-  beforeEach(() => {
-    vi.useFakeTimers()
-  })
-
-  afterEach(() => {
-    vi.useRealTimers()
-  })
-
   it('affiche le titre', () => {
     render(<TaskCard tache={baseTache} />)
     expect(screen.getByText('Rangement salle')).toBeInTheDocument()
@@ -62,28 +54,18 @@ describe('TaskCard', () => {
     expect(card.className).not.toContain('opacity-50')
   })
 
-  it('appelle onStatusForward au tap court', () => {
-    const onForward = vi.fn()
-    const { container } = render(<TaskCard tache={baseTache} onStatusForward={onForward} />)
+  it('appelle onCardTap au tap sur la carte', () => {
+    const onCardTap = vi.fn()
+    const { container } = render(<TaskCard tache={baseTache} onCardTap={onCardTap} />)
     const card = container.firstChild as HTMLElement
-
-    fireEvent.pointerDown(card)
-    act(() => { vi.advanceTimersByTime(100) })
-    fireEvent.pointerUp(card)
-
-    expect(onForward).toHaveBeenCalledWith('1')
+    fireEvent.click(card)
+    expect(onCardTap).toHaveBeenCalledWith(baseTache)
   })
 
-  it('appelle onStatusBack au tap long >= 500ms', () => {
-    const onBack = vi.fn()
-    const { container } = render(<TaskCard tache={baseTache} onStatusBack={onBack} />)
+  it("n'appelle rien si onCardTap non fourni", () => {
+    const { container } = render(<TaskCard tache={baseTache} />)
     const card = container.firstChild as HTMLElement
-
-    fireEvent.pointerDown(card)
-    act(() => { vi.advanceTimersByTime(600) })
-    fireEvent.pointerUp(card)
-
-    expect(onBack).toHaveBeenCalledWith('1')
+    expect(() => fireEvent.click(card)).not.toThrow()
   })
 
   it('masque la note si null', () => {
@@ -94,5 +76,10 @@ describe('TaskCard', () => {
   it('masque les horaires si null', () => {
     render(<TaskCard tache={{ ...baseTache, heure_debut: null, heure_fin: null }} />)
     expect(screen.queryByText('10:00')).toBeNull()
+  })
+
+  it('affiche les assignes avec showAssigne', () => {
+    render(<TaskCard tache={baseTache} showAssigne />)
+    expect(screen.getByText('Ronan')).toBeInTheDocument()
   })
 })

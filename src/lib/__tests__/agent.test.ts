@@ -5,6 +5,9 @@ vi.mock('../claude', () => ({
   callClaude: vi.fn(),
 }))
 
+// Mock mariageKnowledge (toolExecutor en dépend)
+vi.mock('../mariageKnowledge', () => ({ getMariageKnowledge: vi.fn(() => '') }))
+
 // Mock firebase (toolExecutor en dépend)
 vi.mock('@/lib/firebase', () => ({
   db: {},
