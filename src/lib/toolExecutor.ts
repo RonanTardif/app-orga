@@ -253,7 +253,7 @@ interface AjouterTacheInput {
   heure_debut?: string
   heure_fin?: string
   note?: string
-  jour?: 'avant' | 'vendredi' | 'samedi' | 'dimanche'
+  jour?: 'lundi' | 'mardi' | 'mercredi' | 'jeudi' | 'vendredi' | 'samedi' | 'dimanche' | 'lundi_apres'
 }
 
 interface AjouterNoteInput {
@@ -291,7 +291,7 @@ export async function executeWriteTool(
       heure_fin: i.heure_fin ?? null,
       note: i.note ?? null,
       statut: 'À faire',
-      jour: i.jour ?? 'avant',
+      jour: i.jour ?? 'vendredi',
       parente: null,
     })
     return `Tâche "${i.titre}" créée (ID: ${ref.id})`

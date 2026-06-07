@@ -11,10 +11,14 @@ interface Props {
 }
 
 const JOUR_OPTIONS: { value: Tache['jour']; label: string }[] = [
-  { value: 'avant', label: 'Avant le 12' },
-  { value: 'vendredi', label: 'Vendredi 12 juin' },
-  { value: 'samedi', label: 'Samedi 13 juin' },
-  { value: 'dimanche', label: 'Dimanche 14 juin' },
+  { value: 'lundi',       label: 'Lundi 8 juin' },
+  { value: 'mardi',       label: 'Mardi 9 juin' },
+  { value: 'mercredi',    label: 'Mercredi 10 juin' },
+  { value: 'jeudi',       label: 'Jeudi 11 juin' },
+  { value: 'vendredi',    label: 'Vendredi 12 juin' },
+  { value: 'samedi',      label: 'Samedi 13 juin' },
+  { value: 'dimanche',    label: 'Dimanche 14 juin' },
+  { value: 'lundi_apres', label: 'Lundi 15 juin' },
 ]
 
 const EMPTY_FORM = {
@@ -25,7 +29,7 @@ const EMPTY_FORM = {
   heure_fin: '',
   parente: '',
   note: '',
-  jour: 'avant' as Tache['jour'],
+  jour: 'vendredi' as Tache['jour'],
 }
 
 export function TaskForm({ open, onClose, onSubmit }: Props) {

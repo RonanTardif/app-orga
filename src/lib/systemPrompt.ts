@@ -3,7 +3,10 @@ import type { Tache, KellyMemoryNote } from '@/types'
 
 function buildTaskIndex(tasks: Tache[]): string {
   if (tasks.length === 0) return 'Aucune tâche pour le moment.'
-  const jours: Record<string, string> = { avant: 'Avant', vendredi: 'Ven 12', samedi: 'Sam 13', dimanche: 'Dim 14' }
+  const jours: Record<string, string> = {
+    lundi: 'Lun 8', mardi: 'Mar 9', mercredi: 'Mer 10', jeudi: 'Jeu 11',
+    vendredi: 'Ven 12', samedi: 'Sam 13', dimanche: 'Dim 14', lundi_apres: 'Lun 15',
+  }
   return tasks
     .map((t) => {
       const heure = t.heure_debut ? `${t.heure_debut}${t.heure_fin ? '-' + t.heure_fin : ''}` : ''

@@ -1,32 +1,18 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useIdentity } from '@/hooks/useIdentity'
 import { useTasks } from '@/hooks/useTasks'
 import { DaySection } from '@/components/tasks/DaySection'
 import { TaskSheet } from '@/components/tasks/TaskSheet'
 import { EmptyState } from '@/components/tasks/EmptyState'
 import { Toast } from '@/components/ui/Toast'
-import { getJourActuel, sortTachesByHeure } from '@/lib/utils'
+import { getJourActuel, sortTachesByHeure, normaliserJour } from '@/lib/utils'
+import { JOURS_ORDONNES, JOUR_SECTION_LABELS, JOUR_CHIP_LABELS } from '@/lib/constants'
 import type { ToastData } from '@/components/ui/Toast'
-import type { Tache } from '@/types'
+import type { Tache, Jour } from '@/types'
 
-const JOUR_CHIPS = [
-  { key: 'tous', label: 'Tous' },
-  { key: 'vendredi', label: 'Vendredi' },
-  { key: 'samedi', label: 'Samedi' },
-  { key: 'dimanche', label: 'Dimanche' },
-  { key: 'avant', label: 'Avant' },
-] as const
+type FilterJour = Jour | 'tous'
 
-type FilterJour = (typeof JOUR_CHIPS)[number]['key']
-
-const SECTIONS = [
-  { key: 'avant', label: 'Avant le 12' },
-  { key: 'vendredi', label: 'Vendredi 12 juin' },
-  { key: 'samedi', label: 'Samedi 13 juin' },
-  { key: 'dimanche', label: 'Dimanche 14 juin' },
-] as const
-
-const getJourTache = (t: Tache): string => t.jour ?? 'avant'
+const getJourTache = (t: Tache): Jour => normaliserJour(t.jour)
 
 export function MyTasksPage() {
   const { identity } = useIdentity()
@@ -36,6 +22,11 @@ export function MyTasksPage() {
   const [toasts, setToasts] = useState<ToastData[]>([])
 
   const jourActuel = getJourActuel()
+
+  const joursAvecTaches = useMemo(() => {
+    const set = new Set(tasks.map((t) => getJourTache(t)))
+    return JOURS_ORDONNES.filter((j) => set.has(j))
+  }, [tasks])
 
   function showToast(message: string, variant: 'error' | 'success') {
     const id = Date.now()
@@ -73,10 +64,11 @@ export function MyTasksPage() {
       : tasks.filter((t) => getJourTache(t) === filterJour)
   )
 
-  const tasksByJour = SECTIONS.map((section) => ({
-    ...section,
-    tasks: filteredTasks.filter((t) => getJourTache(t) === section.key),
-    defaultOpen: filterJour !== 'tous' || jourActuel === null || jourActuel === section.key,
+  const tasksByJour = joursAvecTaches.map((jour) => ({
+    key: jour,
+    label: JOUR_SECTION_LABELS[jour],
+    tasks: filteredTasks.filter((t) => getJourTache(t) === jour),
+    defaultOpen: filterJour !== 'tous' || jourActuel === null || jourActuel === jour,
   }))
 
   return (
@@ -92,18 +84,27 @@ export function MyTasksPage() {
         </div>
       )}
 
-      {/* Chips filtre jour */}
+      {/* Chips filtre jour — uniquement les jours où l'utilisateur a des tâches */}
       <div className="flex gap-2 overflow-x-auto pb-1 mb-4 scrollbar-hide">
-        {JOUR_CHIPS.map(({ key, label }) => (
+        <button
+          onClick={() => handleChipClick('tous')}
+          className={`flex-shrink-0 min-h-[36px] px-3 rounded-full text-sm border transition-colors
+            ${filterJour === 'tous'
+              ? 'bg-sage text-white border-sage-dark'
+              : 'bg-cream-card border-border-card text-gray-600'}`}
+        >
+          Tous
+        </button>
+        {joursAvecTaches.map((jour) => (
           <button
-            key={key}
-            onClick={() => handleChipClick(key)}
+            key={jour}
+            onClick={() => handleChipClick(jour)}
             className={`flex-shrink-0 min-h-[36px] px-3 rounded-full text-sm border transition-colors
-              ${filterJour === key
+              ${filterJour === jour
                 ? 'bg-sage text-white border-sage-dark'
                 : 'bg-cream-card border-border-card text-gray-600'}`}
           >
-            {label}
+            {JOUR_CHIP_LABELS[jour]}
           </button>
         ))}
       </div>

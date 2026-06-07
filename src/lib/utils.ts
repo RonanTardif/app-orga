@@ -1,26 +1,38 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import type { Tache, Statut } from '@/types'
-import { MEMBRES } from '@/lib/constants'
+import type { Tache, Statut, Jour } from '@/types'
+import { MEMBRES, JOUR_ORDRE } from '@/lib/constants'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function getJourActuel(): 'vendredi' | 'samedi' | 'dimanche' | null {
+export function getJourActuel(): Jour | null {
   const today = new Date()
-  const vendredi = new Date(2026, 5, 12)
-  const samedi = new Date(2026, 5, 13)
-  const dimanche = new Date(2026, 5, 14)
   const td = today.toDateString()
-  if (td === vendredi.toDateString()) return 'vendredi'
-  if (td === samedi.toDateString()) return 'samedi'
-  if (td === dimanche.toDateString()) return 'dimanche'
-  return null
+  const dates: [Jour, Date][] = [
+    ['lundi',       new Date(2026, 5, 8)],
+    ['mardi',       new Date(2026, 5, 9)],
+    ['mercredi',    new Date(2026, 5, 10)],
+    ['jeudi',       new Date(2026, 5, 11)],
+    ['vendredi',    new Date(2026, 5, 12)],
+    ['samedi',      new Date(2026, 5, 13)],
+    ['dimanche',    new Date(2026, 5, 14)],
+    ['lundi_apres', new Date(2026, 5, 15)],
+  ]
+  return dates.find(([, d]) => d.toDateString() === td)?.[0] ?? null
+}
+
+export function normaliserJour(jour: string): Jour {
+  if (jour === 'avant') return 'lundi'
+  return jour as Jour
 }
 
 export function sortTachesByHeure(taches: Tache[]): Tache[] {
   return [...taches].sort((a, b) => {
+    const aOrdre = JOUR_ORDRE[a.jour] ?? 0
+    const bOrdre = JOUR_ORDRE[b.jour] ?? 0
+    if (aOrdre !== bOrdre) return aOrdre - bOrdre
     // P-07 : utiliser == null pour couvrir undefined (champ absent de Firestore) et null
     const aNull = a.heure_debut == null
     const bNull = b.heure_debut == null

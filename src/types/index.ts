@@ -2,6 +2,8 @@ import type { Timestamp } from 'firebase/firestore'
 
 export type Statut = 'À faire' | 'En cours' | 'Fait'
 
+export type Jour = 'lundi' | 'mardi' | 'mercredi' | 'jeudi' | 'vendredi' | 'samedi' | 'dimanche' | 'lundi_apres'
+
 export interface KellyMemoryNote {
   id: string
   contenu: string
@@ -17,7 +19,7 @@ export interface Tache {
   assignes: string[]
   statut: Statut
   note: string | null
-  jour: 'vendredi' | 'samedi' | 'dimanche' | 'avant'
+  jour: Jour
   parente: string | null
 }
 
