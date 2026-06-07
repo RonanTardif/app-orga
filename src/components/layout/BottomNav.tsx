@@ -3,7 +3,7 @@ import { CheckSquare, LayoutGrid, Settings, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const tabs = [
-  { to: '/', icon: CheckSquare, label: 'Mes taches' },
+  { to: '/', icon: CheckSquare, label: 'Mes tâches' },
   { to: '/chef', icon: LayoutGrid, label: 'Vue générale' },
   { to: '/kelly', icon: Sparkles, label: 'Kelly' },
   { to: '/settings', icon: Settings, label: 'Parametres' },

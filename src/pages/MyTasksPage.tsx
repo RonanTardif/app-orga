@@ -73,7 +73,7 @@ export function MyTasksPage() {
 
   return (
     <div className="p-4 max-w-lg mx-auto">
-      <h1 className="text-2xl font-semibold text-sage-dark mb-1">Mes taches</h1>
+      <h1 className="text-2xl font-semibold text-sage-dark mb-1">Mes tâches</h1>
       {identity && (
         <p className="text-gray-500 text-sm mb-3">{identity}</p>
       )}
