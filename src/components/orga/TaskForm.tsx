@@ -84,7 +84,7 @@ export function TaskForm({ open, onClose, onSubmit }: Props) {
             onClick={handleClose}
           />
           <motion.div
-            className="fixed bottom-0 left-0 right-0 bg-cream rounded-t-3xl z-50 px-4 pt-4 pb-8 max-h-[90vh] flex flex-col"
+            className="fixed bottom-0 left-0 right-0 bg-cream rounded-t-3xl z-50 px-4 pt-4 pb-24 max-h-[90vh] flex flex-col"
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}

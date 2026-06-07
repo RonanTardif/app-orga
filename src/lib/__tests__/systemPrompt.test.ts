@@ -36,4 +36,37 @@ describe('systemPrompt', () => {
     expect(prompt).toContain('abc123')
     expect(prompt).toContain('Lancer du bouquet')
   })
+
+  it('injecte les notes mémorisées dans le prompt si non vides', () => {
+    const notes = [
+      { id: '1', contenu: 'Les verres à shots sont dans l\'orangerie' },
+      { id: '2', contenu: 'Le traiteur arrive à 11h' },
+    ]
+    const prompt = buildSystemPrompt([], notes)
+    expect(prompt).toContain('Informations mémorisées')
+    expect(prompt).toContain('Les verres à shots sont dans l\'orangerie')
+    expect(prompt).toContain('Le traiteur arrive à 11h')
+  })
+
+  it('n\'ajoute pas la section mémoire si le tableau est vide', () => {
+    const prompt = buildSystemPrompt([], [])
+    expect(prompt).not.toContain('Informations mémorisées')
+  })
+
+  it('consulter_memoire reste documenté dans le prompt même quand la mémoire est non vide', () => {
+    const notes = [{ id: '1', contenu: 'Les verres sont dans l\'orangerie' }]
+    const prompt = buildSystemPrompt([], notes)
+    expect(prompt).toContain('consulter_memoire')
+  })
+
+  it('ignore les notes sans contenu pour éviter "- undefined" dans le prompt', () => {
+    const notes = [
+      { id: '1', contenu: 'Info valide' },
+      { id: '2', contenu: '' },
+    ]
+    const prompt = buildSystemPrompt([], notes)
+    expect(prompt).toContain('Info valide')
+    expect(prompt).not.toContain('- undefined')
+    expect(prompt).not.toContain('- \n')
+  })
 })

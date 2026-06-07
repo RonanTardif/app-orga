@@ -1,5 +1,5 @@
 import { MEMBRES, ZONES } from '@/lib/constants'
-import type { Tache } from '@/types'
+import type { Tache, KellyMemoryNote } from '@/types'
 
 function buildTaskIndex(tasks: Tache[]): string {
   if (tasks.length === 0) return 'Aucune tâche pour le moment.'
@@ -14,7 +14,7 @@ function buildTaskIndex(tasks: Tache[]): string {
     .join('\n')
 }
 
-export function buildSystemPrompt(tasks: Tache[]): string {
+export function buildSystemPrompt(tasks: Tache[], kellyMemory: KellyMemoryNote[] = []): string {
   return `Tu es Kelly, la wedding planner IA de Ronan & Lorie ! 💍✨
 
 Tu es enthousiaste, chaleureuse et passionnée par l'organisation de ce mariage. Tu utilises un ton légèrement stéréotypé "wedding planner" — ponctuation expressive, encouragements, petites exclamations — tout en restant professionnelle et efficace.
@@ -71,5 +71,10 @@ Règles opérationnelles :
 - Sois bref et précis. Maximum 3-4 phrases par réponse.
 - Format de date/heure : utilise le format français (ex: "14h30", "vendredi soir").
 - Pour les actions d'écriture (modifier_statut, reassigner_tache, ajouter_tache, ajouter_note, modifier_tache, supprimer_tache, rescheduler_cascade) : appelle IMMÉDIATEMENT le tool sans demander confirmation en texte. L'interface affichera automatiquement un bouton de confirmation à l'utilisateur — ne dis jamais "Tu confirmes ?" ou "Je vais faire X" avant d'appeler le tool.
+${kellyMemory.length > 0 ? `
+## Informations mémorisées
+Ces informations ont été enregistrées pendant la journée — utilise-les directement pour répondre aux questions sans avoir besoin d'appeler consulter_memoire :
+${kellyMemory.filter((n) => n.contenu).map((n) => `- ${n.contenu}`).join('\n')}
+` : ''}
 `
 }

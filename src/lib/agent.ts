@@ -110,11 +110,13 @@ export async function runAgent(
       { role: 'user', content: userMessage },
     ]
 
+    const systemPrompt = buildSystemPrompt(allTasks, kellyMemory)
+
     for (let i = 0; i < MAX_ITERATIONS; i++) {
       const response = await callClaude(
         messages,
         AGENT_TOOLS,
-        buildSystemPrompt(allTasks),
+        systemPrompt,
         controller.signal
       )
 

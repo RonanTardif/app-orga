@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { MapPin, Clock, GitBranch, FileText } from 'lucide-react'
+import { MapPin, Clock, FileText } from 'lucide-react'
 import { TaskStatusBadge } from './TaskStatusBadge'
 import type { Tache } from '@/types'
 
@@ -18,7 +18,8 @@ export function TaskCard({ tache, onCardTap, showAssigne }: Props) {
       onClick={() => onCardTap?.(tache)}
       className={`bg-cream-card border border-border-card rounded-2xl p-4 shadow-sm select-none touch-manipulation
         ${isDone ? 'opacity-50' : ''}
-        ${onCardTap ? 'cursor-pointer' : ''}`}
+        ${onCardTap ? 'cursor-pointer' : ''}
+        ${tache.parente ? 'ml-3 border-l-4 border-l-sage/40' : ''}`}
     >
       <div className="flex items-start justify-between gap-2 mb-2">
         <p className="font-medium text-gray-800 flex-1">{tache.titre}</p>
@@ -53,9 +54,8 @@ export function TaskCard({ tache, onCardTap, showAssigne }: Props) {
       </div>
 
       {tache.parente && (
-        <p className="mt-1.5 text-xs text-gray-400 flex items-center gap-1">
-          <GitBranch className="w-3 h-3" />
-          {tache.parente}
+        <p className="mt-1.5 text-xs text-gray-400 truncate">
+          ↳ {tache.parente}
         </p>
       )}
       {tache.note && (

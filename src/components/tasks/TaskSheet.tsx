@@ -148,7 +148,7 @@ export function TaskSheet({ tache, onClose, onSave, onDelete }: Props) {
               </button>
             </div>
 
-            <div className="overflow-y-auto flex-1">
+            <div className="overflow-y-auto flex-1 pb-20">
               {/* Segmented control statut */}
               <div className="flex gap-2 mb-4">
                 {STATUTS.map((s) => (

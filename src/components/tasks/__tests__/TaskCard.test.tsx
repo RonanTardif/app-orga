@@ -32,9 +32,21 @@ describe('TaskCard', () => {
     expect(screen.getByText('Chateau')).toBeInTheDocument()
   })
 
-  it('affiche la tache parente', () => {
+  it('affiche la tache parente avec préfixe ↳', () => {
     render(<TaskCard tache={baseTache} />)
-    expect(screen.getByText('Grande mise en place')).toBeInTheDocument()
+    expect(screen.getByText('↳ Grande mise en place')).toBeInTheDocument()
+  })
+
+  it('applique l\'indentation si tache.parente non nul', () => {
+    const { container } = render(<TaskCard tache={baseTache} />)
+    const card = container.firstChild as HTMLElement
+    expect(card.className).toContain('ml-3')
+  })
+
+  it('n\'applique pas l\'indentation si tache.parente est null', () => {
+    const { container } = render(<TaskCard tache={{ ...baseTache, parente: null }} />)
+    const card = container.firstChild as HTMLElement
+    expect(card.className).not.toContain('ml-3')
   })
 
   it('affiche la note', () => {
