@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Pencil, Trash2, MapPin, Clock, GitBranch, FileText, Users, Calendar } from 'lucide-react'
-import { MEMBRES, ZONES } from '@/lib/constants'
+import { MEMBRES, ZONES, JOUR_SECTION_LABELS, JOURS_ORDONNES } from '@/lib/constants'
 import type { Tache, Statut } from '@/types'
 
 interface Props {
@@ -13,19 +13,7 @@ interface Props {
 
 const STATUTS: Statut[] = ['À faire', 'En cours', 'Fait']
 
-const JOUR_OPTIONS: { value: Tache['jour']; label: string }[] = [
-  { value: 'avant', label: 'Avant le 12' },
-  { value: 'vendredi', label: 'Vendredi 12 juin' },
-  { value: 'samedi', label: 'Samedi 13 juin' },
-  { value: 'dimanche', label: 'Dimanche 14 juin' },
-]
-
-const JOUR_LABELS: Record<Tache['jour'], string> = {
-  avant: 'Avant le 12',
-  vendredi: 'Vendredi 12 juin',
-  samedi: 'Samedi 13 juin',
-  dimanche: 'Dimanche 14 juin',
-}
+const JOUR_OPTIONS = JOURS_ORDONNES.map((j) => ({ value: j, label: JOUR_SECTION_LABELS[j] }))
 
 export function TaskSheet({ tache, onClose, onSave, onDelete }: Props) {
   const [isEditing, setIsEditing] = useState(false)
@@ -56,7 +44,7 @@ export function TaskSheet({ tache, onClose, onSave, onDelete }: Props) {
       heure_fin: tache.heure_fin ?? '',
       parente: tache.parente ?? '',
       note: tache.note ?? '',
-      jour: tache.jour ?? 'avant',
+      jour: tache.jour,
     })
     setIsEditing(true)
   }
@@ -206,7 +194,7 @@ export function TaskSheet({ tache, onClose, onSave, onDelete }: Props) {
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-gray-400 shrink-0" />
                     <span className="text-gray-600 text-sm">
-                      {tache.jour ? JOUR_LABELS[tache.jour] : 'Avant le 12'}
+                      {JOUR_SECTION_LABELS[tache.jour] ?? tache.jour}
                     </span>
                   </div>
                 </div>
